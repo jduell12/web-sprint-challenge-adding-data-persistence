@@ -7,6 +7,7 @@ module.exports = {
   getProjectTasks,
   addProject,
   addResource,
+  addTask,
 };
 
 //returns an array of projects
@@ -69,5 +70,16 @@ function addResource(id, resource) {
         .then((ids) => {
           return getProjectResources(id);
         });
+    });
+}
+
+//adds a task to the provided project id
+function addTask(id, task) {
+  return db("tasks")
+    .insert(task)
+    .where({ project_id: id })
+    .returning("ids")
+    .then((ids) => {
+      return getProjectTasks(id);
     });
 }

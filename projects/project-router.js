@@ -76,10 +76,10 @@ router.get("/:id/tasks", validateProjectId, (req, res) => {
       if (tasks) {
         //changes to user friendly english
         tasks.forEach((task) => {
-          if (task.completed == 0) {
-            task.completed = false;
+          if (task.Completed == 0) {
+            task.Completed = false;
           } else {
-            task.completed = true;
+            task.Completed = true;
           }
         });
         res.status(200).json({ data: tasks });
@@ -112,7 +112,7 @@ router.post("/", validateProject, (req, res) => {
   }
 });
 
-//adds a resource to the specified project
+//adds a resource to the specified project and then returns the list of resources for the project
 router.post(
   "/:id/resource",
   validateProjectId,
@@ -129,6 +129,27 @@ router.post(
     }
   },
 );
+
+//adds a task to the specified project and then returns the list of tasks for the project
+router.post("/:id/task", validateProjectId, validateTask, (req, res) => {
+  try {
+    Projects.addTask(req.project, req.body).then((tasks) => {
+      //changes to user friendly english
+      tasks.forEach((task) => {
+        if (task.Completed == 0) {
+          task.Completed = false;
+        } else {
+          task.Completed = true;
+        }
+      });
+      res.status(201).json({ data: tasks });
+    });
+  } catch {
+    res.status(500).json({
+      errorMessage: "Could not retrieve project resources from database",
+    });
+  }
+});
 
 /*    res.status(500).json({
       errorMessage: "Could not retrieve project resources from database",
@@ -149,6 +170,7 @@ function validateProjectId(req, res, next) {
     });
 }
 
+//validates that the required project information is provided
 function validateProject(req, res, next) {
   const projectInfo = req.body;
 
@@ -159,12 +181,27 @@ function validateProject(req, res, next) {
   }
 }
 
+//validates that the required resource information is provided
 function validateResource(req, res, next) {
   const resourceInfo = req.body;
 
   if (!resourceInfo.name) {
-    res.status(400).json({ message: "Please provide a name for the resource" });
+    res.status(200).json({ message: "Please provide a name for the resource" });
   } else {
+    next();
+  }
+}
+
+//validates that the required task information is provided
+function validateTask(req, res, next) {
+  const taskInfo = req.body;
+
+  if (!taskInfo.description) {
+    res
+      .status(200)
+      .json({ message: "Please provide a description for the task" });
+  } else {
+    taskInfo.project_id = req.params.id;
     next();
   }
 }
