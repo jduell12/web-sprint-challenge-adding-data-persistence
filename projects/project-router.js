@@ -26,35 +26,56 @@ router.get("/", (req, res) => {
   }
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", validateProjectId, (req, res) => {
   const { id } = req.params;
 
   try {
-    Projects.getProjectById(id)
-      .then((project) => {
-        if (project) {
-          //changes boolean number to user friendly english
-          if (project.completed == 0) {
-            project.completed = false;
-          } else {
-            project.completed = true;
-          }
-          res.status(200).json({ data: project });
+    Projects.getProjectById(id).then((project) => {
+      if (project) {
+        //changes boolean number to user friendly english
+        if (project.completed == 0) {
+          project.completed = false;
         } else {
-          res
-            .status(404)
-            .json({ message: "Could not find project with given id" });
+          project.completed = true;
         }
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(400).json({ error: err });
-      });
+        res.status(200).json({ data: project });
+      } else {
+        res
+          .status(404)
+          .json({ message: "Could not find project with given id" });
+      }
+    });
   } catch {
     res
       .status(500)
       .json({ errorMessage: "Could not retrieve project from database" });
   }
 });
+
+router.get("/:id/resources", validateProjectId, (req, res) => {
+  try {
+    Projects.getProjectResources(req.project).then((resources) => {
+      res.status(200).json({ data: resources });
+    });
+  } catch {
+    res.status(500).json({
+      errorMessage: "Could not retrieve project resources from database",
+    });
+  }
+});
+
+//checks that there is a project that has the id provided
+function validateProjectId(req, res, next) {
+  const projectId = req.params.id;
+
+  Projects.getProjectById(projectId)
+    .then((project) => {
+      req.project = project.id;
+      next();
+    })
+    .catch((err) => {
+      res.status(404).json({ message: "Invalid project id" });
+    });
+}
 
 module.exports = router;
