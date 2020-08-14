@@ -151,11 +151,6 @@ router.post("/:id/task", validateProjectId, validateTask, (req, res) => {
   }
 });
 
-/*    res.status(500).json({
-      errorMessage: "Could not retrieve project resources from database",
-    });
- */
-
 //checks that there is a project that has the id provided
 function validateProjectId(req, res, next) {
   const projectId = req.params.id;
