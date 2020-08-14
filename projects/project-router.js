@@ -3,6 +3,7 @@ const router = express.Router();
 
 const Projects = require("./project-model");
 
+//gets list of projects from database
 router.get("/", (req, res) => {
   try {
     Projects.getProjects()
@@ -28,6 +29,7 @@ router.get("/", (req, res) => {
   }
 });
 
+//gets project with specified id
 router.get("/:id", validateProjectId, (req, res) => {
   const { id } = req.params;
 
@@ -54,6 +56,7 @@ router.get("/:id", validateProjectId, (req, res) => {
   }
 });
 
+//gets resources for project with specified id
 router.get("/:id/resources", validateProjectId, (req, res) => {
   try {
     Projects.getProjectResources(req.project).then((resources) => {
@@ -66,16 +69,19 @@ router.get("/:id/resources", validateProjectId, (req, res) => {
   }
 });
 
+//gets tasks for project with specified id
 router.get("/:id/tasks", validateProjectId, (req, res) => {
   try {
     Projects.getProjectTasks(req.project).then((tasks) => {
       if (tasks) {
         //changes to user friendly english
-        if (tasks[0].Completed == 0) {
-          tasks[0].Completed = false;
-        } else {
-          tasks[0].Completed = true;
-        }
+        tasks.forEach((task) => {
+          if (task.completed == 0) {
+            task.completed = false;
+          } else {
+            task.completed = true;
+          }
+        });
         res.status(200).json({ data: tasks });
       } else {
         res.status(404).json({ message: "This project has no tasks yet." });
@@ -88,6 +94,7 @@ router.get("/:id/tasks", validateProjectId, (req, res) => {
   }
 });
 
+//adds a project to the database
 router.post("/", validateProject, (req, res) => {
   try {
     Projects.addProject(req.body).then((project) => {
@@ -104,6 +111,24 @@ router.post("/", validateProject, (req, res) => {
     });
   }
 });
+
+//adds a resource to the specified project
+router.post(
+  "/:id/resource",
+  validateProjectId,
+  validateResource,
+  (req, res) => {
+    try {
+      Projects.addResource(req.project, req.body).then((success) => {
+        res.status(201).json({ data: success });
+      });
+    } catch {
+      res.status(500).json({
+        errorMessage: "Could not retrieve project resources from database",
+      });
+    }
+  },
+);
 
 /*    res.status(500).json({
       errorMessage: "Could not retrieve project resources from database",
@@ -129,6 +154,16 @@ function validateProject(req, res, next) {
 
   if (!projectInfo.name) {
     res.status(200).json({ message: "Please include a project name" });
+  } else {
+    next();
+  }
+}
+
+function validateResource(req, res, next) {
+  const resourceInfo = req.body;
+
+  if (!resourceInfo.name) {
+    res.status(400).json({ message: "Please provide a name for the resource" });
   } else {
     next();
   }

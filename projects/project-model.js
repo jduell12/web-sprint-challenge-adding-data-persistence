@@ -6,6 +6,7 @@ module.exports = {
   getProjectResources,
   getProjectTasks,
   addProject,
+  addResource,
 };
 
 //returns an array of projects
@@ -52,5 +53,21 @@ function addProject(project) {
     .then((ids) => {
       const id = ids[0];
       return getProjectById(id);
+    });
+}
+
+//adds resource to provided project id
+function addResource(id, resource) {
+  return db("resources")
+    .insert(resource)
+    .returning("id")
+    .then((ids) => {
+      const resource_id = ids[0];
+      return db("project_resources")
+        .insert({ project_id: id, resource_id: resource_id })
+        .returning("ids")
+        .then((ids) => {
+          return getProjectResources(id);
+        });
     });
 }
