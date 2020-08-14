@@ -8,11 +8,13 @@ router.get("/", (req, res) => {
     Projects.getProjects()
       .then((projects) => {
         //changes boolean number to user friendly english
-        if (projects[0].completed == 0) {
-          projects[0].completed = false;
-        } else {
-          projects[0].completed = true;
-        }
+        projects.forEach((project) => {
+          if (project.completed == 0) {
+            project.completed = false;
+          } else {
+            project.completed = true;
+          }
+        });
 
         res.status(200).json({ data: projects });
       })
@@ -86,6 +88,23 @@ router.get("/:id/tasks", validateProjectId, (req, res) => {
   }
 });
 
+router.post("/", validateProject, (req, res) => {
+  try {
+    Projects.addProject(req.body).then((project) => {
+      if (project.completed == 0) {
+        project.completed = false;
+      } else {
+        project.completed = true;
+      }
+      res.status(201).json({ data: project });
+    });
+  } catch {
+    res.status(500).json({
+      errorMessage: "Could not retrieve project resources from database",
+    });
+  }
+});
+
 /*    res.status(500).json({
       errorMessage: "Could not retrieve project resources from database",
     });
@@ -103,6 +122,16 @@ function validateProjectId(req, res, next) {
     .catch((err) => {
       res.status(404).json({ message: "Invalid project id" });
     });
+}
+
+function validateProject(req, res, next) {
+  const projectInfo = req.body;
+
+  if (!projectInfo.name) {
+    res.status(200).json({ message: "Please include a project name" });
+  } else {
+    next();
+  }
 }
 
 module.exports = router;

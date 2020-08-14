@@ -5,6 +5,7 @@ module.exports = {
   getProjectById,
   getProjectResources,
   getProjectTasks,
+  addProject,
 };
 
 //returns an array of projects
@@ -41,4 +42,15 @@ function getProjectTasks(id) {
       "t.description as Task",
       "t.completed as Completed",
     );
+}
+
+//adds project to project table
+function addProject(project) {
+  return db("projects")
+    .insert(project)
+    .returning("id")
+    .then((ids) => {
+      const id = ids[0];
+      return getProjectById(id);
+    });
 }
