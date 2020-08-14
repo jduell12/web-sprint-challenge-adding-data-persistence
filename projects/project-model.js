@@ -4,6 +4,7 @@ module.exports = {
   getProjects,
   getProjectById,
   getProjectResources,
+  getProjectTasks,
 };
 
 //returns an array of projects
@@ -26,5 +27,18 @@ function getProjectResources(id) {
       "p.name as Project",
       "r.name as Resource",
       "r.description as Description",
+    );
+}
+
+//returns an array of tasks for a given project id
+function getProjectTasks(id) {
+  return db("tasks as t")
+    .join("projects as p", "t.project_id", "p.id")
+    .where({ project_id: id })
+    .select(
+      "p.name as Project",
+      "p.description as Description",
+      "t.description as Task",
+      "t.completed as Completed",
     );
 }

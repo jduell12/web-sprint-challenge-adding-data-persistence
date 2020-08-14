@@ -64,6 +64,33 @@ router.get("/:id/resources", validateProjectId, (req, res) => {
   }
 });
 
+router.get("/:id/tasks", validateProjectId, (req, res) => {
+  try {
+    Projects.getProjectTasks(req.project).then((tasks) => {
+      if (tasks) {
+        //changes to user friendly english
+        if (tasks[0].Completed == 0) {
+          tasks[0].Completed = false;
+        } else {
+          tasks[0].Completed = true;
+        }
+        res.status(200).json({ data: tasks });
+      } else {
+        res.status(404).json({ message: "This project has no tasks yet." });
+      }
+    });
+  } catch {
+    res.status(500).json({
+      errorMessage: "Could not retrieve project resources from database",
+    });
+  }
+});
+
+/*    res.status(500).json({
+      errorMessage: "Could not retrieve project resources from database",
+    });
+ */
+
 //checks that there is a project that has the id provided
 function validateProjectId(req, res, next) {
   const projectId = req.params.id;
