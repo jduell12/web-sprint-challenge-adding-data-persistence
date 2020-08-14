@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 
 const Resources = require("./resource-model");
-const { resource } = require("../api/server");
 
 router.get("/", (req, res) => {
   try {
